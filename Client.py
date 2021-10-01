@@ -26,9 +26,9 @@ print(publicKeyServer)
 # Recreating RSA key to use it as a key
 publicKeyServer = rsa.PublicKey.load_pkcs1(publicKeyServer, 'PEM')
 
-key = get_random_bytes(16)
-cipher = AES.new(key, AES.MODE_EAX)
-nonce = cipher.nonce
+key = get_random_bytes(16*2)
+nonce = get_random_bytes(16)
+cipher = AES.new(key, AES.MODE_SIV, nonce=nonce)
 
 # Send my AES key to server
 clientSocket.sendall(rsa.encrypt(key, publicKeyServer))
@@ -49,13 +49,14 @@ clientSocket.sendall(rsa.encrypt(tag, publicKeyServer))
 clientSocket.sendall(rsa.encrypt(ciphertext, publicKeyServer))
 
 # Read line from server
-key = clientSocket.recv(1024)
+tag = clientSocket.recv(1024)
 
 # Read line from server
 message = clientSocket.recv(1024)
 
 # Decrypt client Message with Client RSA key
-plaintext = cipher.decrypt(message)
+cipher = AES.new(key, AES.MODE_SIV, nonce=nonce)
+plaintext = cipher.decrypt_and_verify(message, tag)
 
 try:
     cipher.verify(tag)
