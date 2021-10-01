@@ -13,15 +13,15 @@ clientSocket = socket(AF_INET, SOCK_STREAM)
 clientSocket.connect((serverName, serverPort))
 
 # Write line to server
-clientSocket.sendall('newConnection'.encode('utf-8'))
+print('Sending newConnection to server looking for server public RSA KEY')
+clientSocket.send('newConnection'.encode('utf-8'))
 
 # Read line from server
 publicKeyServer = clientSocket.recv(1024)
 
 # Transform response into UTF-8
 publicKeyServer = publicKeyServer.decode('utf-8')
-
-print(publicKeyServer)
+print('Received Public RSA server KEY message TAG\n')
 
 # Recreating RSA key to use it as a key
 publicKeyServer = rsa.PublicKey.load_pkcs1(publicKeyServer, 'PEM')
@@ -31,10 +31,14 @@ nonce = get_random_bytes(16)
 cipher = AES.new(key, AES.MODE_SIV, nonce=nonce)
 
 # Send my AES key to server
-clientSocket.sendall(rsa.encrypt(key, publicKeyServer))
+print('Sending AES key encrypted with public RSA')
+print(rsa.encrypt(key, publicKeyServer),"\n")
+clientSocket.send(rsa.encrypt(key, publicKeyServer))
 
 # Send my AES nonce to server
-clientSocket.sendall(rsa.encrypt(nonce, publicKeyServer))
+print('Sending AES nonce encrypted with public RSA')
+print(rsa.encrypt(nonce, publicKeyServer),"\n")
+clientSocket.send(rsa.encrypt(nonce, publicKeyServer))
 
 # Get message to send
 message = input('Client ready for input\n');
@@ -43,20 +47,27 @@ message = input('Client ready for input\n');
 ciphertext, tag = cipher.encrypt_and_digest(message.encode('utf-8'))
 
 # Send my AES message tag to server
-clientSocket.sendall(rsa.encrypt(tag, publicKeyServer))
+print('\nSending AES message TAG encrypted with public RSA')
+print(rsa.encrypt(tag, publicKeyServer),"\n")
+clientSocket.send(rsa.encrypt(tag, publicKeyServer))
 
 # Send my AES message to server
-clientSocket.sendall(rsa.encrypt(ciphertext, publicKeyServer))
+print('Sending AES message encrypted with public RSA')
+print(rsa.encrypt(ciphertext, publicKeyServer),"\n")
+clientSocket.send(rsa.encrypt(ciphertext, publicKeyServer))
 
 # Read line from server
 tag = clientSocket.recv(1024)
+print('Received AES server message TAG')
 
 # Read line from server
 message = clientSocket.recv(1024)
+print('Received AES server message')
 
 # Decrypt client Message with Client RSA key
 cipher = AES.new(key, AES.MODE_SIV, nonce=nonce)
 plaintext = cipher.decrypt_and_verify(message, tag)
+plaintext = plaintext.decode('utf-8')
 
 try:
     cipher.verify(tag)
