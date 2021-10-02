@@ -33,24 +33,22 @@ while 1:
     # Wait client Key and decrypting it
     clientKey = connectionSocket.recv(1024)
     clientKey = rsa.decrypt(clientKey,private)
-    print('Received AES client KEY')
+    print('Received AES client KEY encrypted with RSA')
 
     # Wait client Nonce and decrypting it
     clientNonce = connectionSocket.recv(1024)
     clientNonce = rsa.decrypt(clientNonce,private)
-    print('Received AES client NONCE')
+    print('Received AES client NONCE encrypted with RSA')
 
     # Mount AES client key
     clientCipher = AES.new(clientKey, AES.MODE_SIV, nonce=clientNonce)
 
     # Wait client Tag and decrypting it
     clientTag = connectionSocket.recv(1024)
-    clientTag = rsa.decrypt(clientTag,private)
     print('Received AES client message TAG')
 
     # Wait client Message and decrypting it
     clientMessage = connectionSocket.recv(1024)
-    clientMessage = rsa.decrypt(clientMessage,private)
     print('Received AES client message',"\n")
 
     # Decrypt client Message with Client RSA key
@@ -74,12 +72,12 @@ while 1:
         ciphertext, tag = cipher.encrypt_and_digest(plaintextUpper.encode('utf-8'))
 
         # Send the AES plaintextUpper tag to client
-        print('Sending AES message TAG from new message to client')
+        print('Sending AES response TAG from new message to client')
         print(tag,"\n")
         connectionSocket.send(tag)
 
         # Send the AES plaintextUpper to client
-        print('Sending AES new message to client')
+        print('Sending AES response to client')
         print(ciphertext,"\n")
         connectionSocket.send(ciphertext)
     except ValueError:

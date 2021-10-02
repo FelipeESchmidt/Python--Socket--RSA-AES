@@ -47,22 +47,22 @@ message = input('Client ready for input\n');
 ciphertext, tag = cipher.encrypt_and_digest(message.encode('utf-8'))
 
 # Send my AES message tag to server
-print('\nSending AES message TAG encrypted with public RSA')
-print(rsa.encrypt(tag, publicKeyServer),"\n")
-clientSocket.send(rsa.encrypt(tag, publicKeyServer))
+print('\nSending AES message TAG')
+print(tag,"\n")
+clientSocket.send(tag)
 
 # Send my AES message to server
-print('Sending AES message encrypted with public RSA')
-print(rsa.encrypt(ciphertext, publicKeyServer),"\n")
-clientSocket.send(rsa.encrypt(ciphertext, publicKeyServer))
+print('Sending message encrypted with AES')
+print(ciphertext,"\n")
+clientSocket.send(ciphertext)
 
 # Read line from server
 tag = clientSocket.recv(1024)
-print('Received AES server message TAG')
+print('Received AES server response TAG')
 
 # Read line from server
 message = clientSocket.recv(1024)
-print('Received AES server message')
+print('Received AES server response')
 
 # Decrypt client Message with Client RSA key
 cipher = AES.new(key, AES.MODE_SIV, nonce=nonce)
