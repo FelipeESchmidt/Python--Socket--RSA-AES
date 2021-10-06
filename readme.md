@@ -33,7 +33,7 @@ python3 Client.py
 ```
 Wait the communication between Client-Server and type a message to send.
 ```bash
-Client ready for input
+'Client ready for input'
 my message to server (ENTER)
 ```
 
